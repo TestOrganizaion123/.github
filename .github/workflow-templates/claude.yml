@@ -11,7 +11,7 @@ on:
 
 jobs:
   claude:
-    uses: smithuyhoang/.github/.github/workflows/claude-reusable.yml@main
+    uses: TestOrganizaion123/.github/.github/workflows/claude-reusable.yml@main
     secrets: inherit
     permissions:
       contents: write
