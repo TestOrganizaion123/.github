@@ -2,19 +2,46 @@ name: Claude Code
 
 on:
   workflow_call:
+    # Khai báo rõ các secrets cần thiết để workflow này hoạt động
+    secrets:
+      ANTHROPIC_BASE_URL:
+        required: false
+      ANTHROPIC_AUTH_TOKEN:
+        required: true
+      TAILSCALE_OAUTH_CLIENT_ID:
+        required: true
+      TAILSCALE_OAUTH_CLIENT_SECRET:
+        required: true
+      GH_PAT:
+        required: true
 
 jobs:
   claude:
     runs-on: ubuntu-latest
+
     env:
       ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
       ANTHROPIC_AUTH_TOKEN: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
+
     permissions:
       contents: write
       pull-requests: write
       issues: write
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Cực kỳ quan trọng cho AI Code Review: Mặc định action này chỉ tải 1 commit mới nhất (depth: 1).
+          # Đổi thành 0 để tải toàn bộ lịch sử, giúp Claude hiểu được context của các file thay đổi (git diff).
+          fetch-depth: 0
+
+      # Claude Code CLI có thể cần môi trường này để tự động chạy lệnh kiểm chứng code trước khi fix bug.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
 
       - name: Connect Tailscale
         uses: tailscale/github-action@v3
@@ -23,7 +50,8 @@ jobs:
           oauth-secret: ${{ secrets.TAILSCALE_OAUTH_CLIENT_SECRET }}
           tags: tag:ci
 
-      - uses: anthropics/claude-code-action@main
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@main
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           github_token: ${{ secrets.GH_PAT }}

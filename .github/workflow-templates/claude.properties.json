@@ -1,0 +1,9 @@
+{
+    "name": "Claude Code Agent",
+    "description": "Thêm trợ lý AI Claude Code (Anthropic) vào Repository này để tự động Review Code và Fix Bug.",
+    "iconName": "robot",
+    "categories": [
+        "AI",
+        "Code Review"
+    ]
+}
