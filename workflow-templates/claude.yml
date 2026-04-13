@@ -6,7 +6,6 @@ on:
     types: [created] # Chạy khi có comment vào một Issue hoặc PR.
   pull_request_review_comment:
     types: [created] # Chạy khi có comment vào các dòng code cụ thể trong một PR đang được review.
-  commit_comment:
 
 # Định nghĩa những việc gì sẽ được hệ thống thực hiện sau khi khối on được kích hoạt.
 jobs:
