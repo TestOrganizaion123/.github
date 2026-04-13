@@ -12,8 +12,6 @@ on:
         required: true
       TAILSCALE_OAUTH_CLIENT_SECRET:
         required: true
-      GH_PAT:
-        required: true
 
 jobs:
   claude:
@@ -36,6 +34,20 @@ jobs:
           # Đổi thành 0 để tải toàn bộ lịch sử, giúp Claude hiểu được context của các file thay đổi (git diff).
           fetch-depth: 0
 
+      - name: Checkout PR Branch or Commit (Crucial Fix)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          # Khi kích hoạt bằng comment trên PR, mặc định Github sẽ tải source code của nhánh MAIN, không phải code của PR.
+          # Script dưới đây ép nó phải kéo đúng code mới nhất của PR đó về cho AI đọc.
+          if [ "${{ github.event.issue.pull_request }}" != "" ]; then
+            gh pr checkout ${{ github.event.issue.number }}
+          elif [ "${{ github.event_name }}" == "pull_request_review_comment" ]; then
+            gh pr checkout ${{ github.event.pull_request.number }}
+          elif [ "${{ github.event_name }}" == "commit_comment" ]; then
+            git checkout ${{ github.event.comment.commit_id }}
+          fi
+
       # Claude Code CLI có thể cần môi trường này để tự động chạy lệnh kiểm chứng code trước khi fix bug.
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -51,7 +63,7 @@ jobs:
           tags: tag:ci
 
       - name: Run Claude Code
-        uses: anthropics/claude-code-action@main
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
-          github_token: ${{ secrets.GH_PAT }}
+          github_token: ${{ github.token }}
